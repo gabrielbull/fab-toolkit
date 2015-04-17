@@ -1,21 +1,32 @@
 from fabric.api import *
 from toolkit.copy.copy import Copy
+from toolkit.permission.permission import Permission
 
 
 class Git:
     @staticmethod
+    def get_temp_dir():
+        temp = run("mktemp")
+        run("rm -f " + temp)
+        return temp
+
+    @staticmethod
     def clone(destination, remote, branch, user):
-        run("git clone -b " + branch + " " + remote + " " + destination)
-        Copy().owner(destination, user, user)
+        with hide("everything"):
+            temp = Git.get_temp_dir()
+            run("git clone -b " + branch + " " + remote + " " + temp)
+            sudo("mv " + temp + " " + destination)
+            Permission.owner(destination, user, user)
 
     @staticmethod
     def pull(repository, remote, branch, user):
-        with cd(repository):
-            run("git remote set-url origin " + remote)
-            run("git checkout -- .")
-            run("git pull origin " + branch)
+        with hide("everything"):
+            with cd(repository):
+                sudo("git remote set-url origin " + remote)
+                sudo("git checkout -- .")
+                sudo("git pull origin " + branch)
 
-        Copy.owner(repository, user, user)
+            Permission.owner(repository, user, user)
 
     @staticmethod
     def submodule_update(repository, user):
@@ -23,4 +34,4 @@ class Git:
             run("git submodule init")
             run("git submodule update")
 
-        Copy.owner(repository, user, user)
+        Permission.owner(repository, user, user)

@@ -26,15 +26,6 @@ class Copy:
                 sudo("cp -R " + source + filename + " " + destination + filename, user=user)
 
     @staticmethod
-    def owner(directory, user, group):
-        run("chown -R " + user + ":" + group + " " + directory)
-
-    @staticmethod
-    def permissions(files, perm):
-        for filename in files:
-            run("chmod " + perm + " " + filename)
-
-    @staticmethod
     def swap(source, destination, user):
         tmp_destination = destination.rstrip('/') + '_tmp'
         if exists(destination):

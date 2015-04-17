@@ -1,13 +1,14 @@
 from fabric.api import *
-from toolkit.copy.copy import Copy
+from toolkit.permission.permission import Permission
 
 
 class Composer:
     @staticmethod
     def install(directory, user):
-        with cd(directory):
-            run("curl -sS https://getcomposer.org/installer | php")
-            run("php composer.phar install")
-            run("rm -Rf composer.phar")
+        with hide("everything"):
+            with cd(directory):
+                sudo("curl -sS https://getcomposer.org/installer | php", user=user)
+                sudo("php composer.phar  install --no-dev", user=user)
+                sudo("rm -Rf composer.phar", user=user)
 
-        Copy.owner(directory, user, user)
+            Permission.owner(directory, user, user)
