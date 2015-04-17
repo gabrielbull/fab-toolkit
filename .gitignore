@@ -5,4 +5,10 @@
 Thumbs.db
 Desktop.ini
 /.idea
+*~
 *.pyc
+*.pyo
+*.pyt
+*.pytc
+*.egg
+.*.swp
