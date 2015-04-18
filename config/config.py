@@ -14,7 +14,11 @@ class Config:
     def __init__(self, config_file, preference, preference_key):
         self.preference = preference
         self.config_file = config_file
+        self.preference_key = preference_key
         self.__config = self.__get_preference(preference_key)
+
+    def reset(self):
+        self.preference.set('_config_' + self.preference_key, None)
 
     def get(self):
         return self.__config
@@ -64,8 +68,8 @@ class Config:
             if isinstance(item, str):
                 default_value = default_config[item]
                 saved_value = None
-                if isinstance(saved_config, dict):
-                    saved_value = saved_config[item] if (saved_config and saved_config[item]) else None
+                #if isinstance(saved_config, dict):
+                    #saved_value = saved_config[item] if (saved_config and saved_config[item]) else None
 
                 if isinstance(default_value, dict) or isinstance(default_value, list):
                     return_config[item] = self.merge_config(default_value, saved_value)
@@ -79,8 +83,8 @@ class Config:
                 item_return_config = {}
                 for key, default_value in item.iteritems():
                     saved_value = None
-                    if isinstance(saved_config, dict):
-                        saved_value = saved_config[key] if (saved_config and saved_config[key]) else None
+                    #if isinstance(saved_config, dict):
+                        #saved_value = saved_config[key] if (saved_config and saved_config[key]) else None
 
                     if isinstance(default_value, dict) or isinstance(default_value, list):
                         item_return_config[key] = self.merge_config(default_value, saved_value)

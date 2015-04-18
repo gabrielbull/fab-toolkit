@@ -6,7 +6,7 @@ class Copy:
     @staticmethod
     def copy(source, destination, user):
         if exists(destination):
-            sudo("rm -Rf " + destination, user=user)
+            sudo("rm -Rf " + destination)
         sudo("cp -R " + source + " " + destination, user=user)
 
     @staticmethod
@@ -28,8 +28,9 @@ class Copy:
     @staticmethod
     def swap(source, destination, user):
         tmp_destination = destination.rstrip('/') + '_tmp'
+        pre_command = ""
         if exists(destination):
-            sudo("mv " + destination + " " + tmp_destination, user=user)
+            pre_command = "mv " + destination + " " + tmp_destination + " && "
 
-        sudo("mv " + source + " " + destination, user=user)
+        sudo(pre_command + "mv " + source + " " + destination, user=user)
         sudo("mv " + tmp_destination + " " + source, user=user)

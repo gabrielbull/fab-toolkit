@@ -3,6 +3,7 @@ import re
 from os import listdir
 from os.path import isfile, join
 from fabric.contrib.files import exists, append
+from toolkit.permission.permission import Permission
 
 
 class Config:
@@ -10,20 +11,23 @@ class Config:
     def copy_configs(config_directory, remote_directory, config, user):
         files = [f for f in listdir(config_directory) if isfile(join(config_directory, f))]
         for file_name in files:
-            file_path = config_directory + '/' + file_name
-            file_content = Config.replace_variables(config, file_path)
-            Config.upload_file(remote_directory, file_name, file_content, user)
+            if file_name != '.DS_Store':
+                file_path = config_directory + '/' + file_name
+                file_content = Config.replace_variables(config, file_path)
+                Config.upload_file(remote_directory, file_name, file_content, user)
 
     @staticmethod
     def upload_file(remote_directory, file_name, file_content, user):
         file_path = remote_directory + "/" + file_name
         if exists(file_path):
-            sudo("rm " + file_path, user=user)
+            sudo("rm " + file_path)
 
-        sudo("touch " + file_path, user=user)
+        sudo("touch " + file_path)
         # todo use put()?
         with hide("everything"):
-            append(file_path, file_content)
+            append(file_path, file_content, use_sudo=True)
+
+        Permission.owner(file_path, user, user)
 
     @staticmethod
     def replace_variables(config, file_path):
