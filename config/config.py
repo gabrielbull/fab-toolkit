@@ -1,88 +1,100 @@
 import sys
 import yaml
-import os
+import pickle
+from toolkit.config.file import File
+from toolkit.config.directory import Directory
 
 
 class Config:
     """
+    @type config_file: toolkit.config.directory.Directory|toolkit.config.file.File
     @type preference: toolkit.preference.preference.Preference
+    @type preference_key: str
     """
-    def __init__(self, preference):
+    def __init__(self, config_file, preference, preference_key):
         self.preference = preference
+        self.config_file = config_file
+        self.__config = self.__get_preference(preference_key)
 
-    def get(self, name):
-        config_file = self.preference.get('config_file:' + name + '.password')
-        current_config = self.load_current_config(config_file)
-        default_config = self.load_default_config()
+    def get(self):
+        return self.__config
 
-        current_config = self.ask_config(default_config, current_config)
-        self.save_config(config_file, current_config)
+    def __get_preference(self, name):
+        saved_config = self.load_saved_config(self.preference.get('_config_' + name))
+        default_config = self.load_config()
 
-        return self.flatten_config(current_config)
-
-    def flatten_config(self, config):
-        return_value = {}
-        if 'private' in config:
-            for key in config['private']:
-                return_value[key] = config['private'][key]
-
-        if 'public' in config:
-            for key in config['public']:
-                return_value[key] = config['public'][key]
-
-        return return_value
-
-    def load_current_config(self, config_file):
-        directory = os.path.dirname(config_file)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        if os.path.isfile(config_file):
-            config = open(config_file, 'r')
-        else:
-            handle = open(config_file, "w")
-            handle.write("")
-            handle.close()
-            config = ''
-
-        if not config:
-            config = {}
-        else:
-            #self.decrypt_config_file()
-            config = yaml.load(config)
+        config = self.merge_config(default_config, saved_config)
+        self.save_config(config, name)
 
         return config
 
-    def load_default_config(self):
-        return yaml.load(open("config.yaml", 'r'))
+    def load_saved_config(self, saved_config):
+        if saved_config:
+            return pickle.loads(saved_config)
+        return None
 
-    def decrypt_config_file(self):
-        sys.stdout.write('Enter your password: ')
-        password = raw_input()
+    def load_config(self):
+        if isinstance(self.config_file, File):
+            return self.load_config_file(self.config_file)
+        elif isinstance(self.config_file, Directory):
+            return self.load_config_directory(self.config_file)
 
-    def ask_config(self, default_config, current_config):
-        if not current_config:
-            current_config = {}
-            current_config['private'] = {}
-            current_config['public'] = {}
+    def load_config_directory(self, directory):
+        config = {}
+        for file in directory.get_file_list():
+            if isinstance(file, File):
+                config[file.file().replace('.yaml', '')] = self.load_config_file(file)
+            elif isinstance(file, Directory):
+                config[file.directory()] = self.load_config_directory(file)
 
-        for key in default_config:
-            default_value = default_config[key]
-            if default_value.startswith('%private_'):
-                config_key = 'private'
-            else:
-                config_key = 'public'
+        return config
 
-            if default_value.startswith('%') and default_value.endswith('%'):
-                if not key in current_config[config_key]:
-                    sys.stdout.write(key + ': ')
-                    current_config[config_key][key] = raw_input()
-            else:
-                current_config[config_key][key] = default_value
+    def load_config_file(self, file):
+        return yaml.load(open(file.path(), 'r'))
 
-        return current_config
+    def merge_config(self, default_config, saved_config):
+        if isinstance(default_config, dict):
+            return_config = {}
+        elif isinstance(default_config, list):
+            return_config = []
+        else:
+            return_config = None
 
-    def save_config(self, config_file, config):
-        handle = open(config_file, "w")
-        handle.write(yaml.dump(config))
-        handle.close()
+        for item in default_config:
+            if isinstance(item, str):
+                default_value = default_config[item]
+                saved_value = None
+                if isinstance(saved_config, dict):
+                    saved_value = saved_config[item] if (saved_config and saved_config[item]) else None
+
+                if isinstance(default_value, dict) or isinstance(default_value, list):
+                    return_config[item] = self.merge_config(default_value, saved_value)
+                else:
+                    if saved_value:
+                        return_config[item] = saved_value
+                    else:
+                        return_config[item] = default_value
+
+            elif isinstance(item, dict):
+                item_return_config = {}
+                for key, default_value in item.iteritems():
+                    saved_value = None
+                    if isinstance(saved_config, dict):
+                        saved_value = saved_config[key] if (saved_config and saved_config[key]) else None
+
+                    if isinstance(default_value, dict) or isinstance(default_value, list):
+                        item_return_config[key] = self.merge_config(default_value, saved_value)
+                    else:
+                        if saved_value:
+                            print key
+                            item_return_config[key] = saved_value
+                        else:
+                            item_return_config[key] = default_value
+
+                if isinstance(return_config, list):
+                    return_config.append(item_return_config)
+
+        return return_config
+
+    def save_config(self, config, name):
+        self.preference.set('_config_' + name, pickle.dumps(config))

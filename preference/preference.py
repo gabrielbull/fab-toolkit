@@ -8,16 +8,9 @@ class Preference:
     preference_loaded = False
     preference = {}
 
-    def set(self, key):
-        value = ''
-
+    def set(self, key, value=None):
         if key == 'local_ssh_dir':
             sys.stdout.write('Location of your ssh keys (~/.ssh): ')
-            value = self.parse_input(self, raw_input())
-
-        elif key.startswith('config_file:'):
-            parts = key.split(':')
-            sys.stdout.write('Location of your config file (' + parts[1] + '): ')
             value = self.parse_input(self, raw_input())
 
         self.preference[key] = value
