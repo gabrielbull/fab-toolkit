@@ -1,5 +1,4 @@
 from fabric.api import *
-from toolkit.copy.copy import Copy
 from toolkit.permission.permission import Permission
 
 
@@ -29,7 +28,7 @@ class Git:
     @staticmethod
     def submodule_update(repository, user):
         with cd(repository):
-            run("git submodule init")
-            run("git submodule update")
+            sudo("git submodule init")
+            sudo("git submodule update")
 
             Permission.owner(repository, user, user)
