@@ -16,6 +16,18 @@ class Preference:
         self.preference[key] = value
         self.save_preference()
 
+    def ask(self, key):
+        if not self.preference_loaded:
+            self.load_preference()
+
+        if key in self.preference:
+            return self.preference[key]
+        else:
+            sys.stdout.write(key + ': ')
+            value = self.parse_input(self, raw_input())
+            self.set(key, value)
+            return value
+
     @staticmethod
     def parse_input(self, value):
         user_dir = os.path.expanduser("~")
