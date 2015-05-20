@@ -12,3 +12,13 @@ class Composer:
 
             if user:
                 Permission.owner(directory + "/vendor", user, user)
+
+    @staticmethod
+    def update(directory, user=None):
+        with cd(directory):
+            sudo("curl -sS https://getcomposer.org/installer | php")
+            sudo("php composer.phar  update --no-dev --no-interaction")
+            sudo("rm -Rf composer.phar")
+
+            if user:
+                Permission.owner(directory + "/vendor", user, user)
