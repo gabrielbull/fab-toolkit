@@ -19,8 +19,12 @@ class Git:
     @staticmethod
     def pull(repository, remote, branch, user):
         with cd(repository):
+            current_branch = sudo("git rev-parse --abbrev-ref HEAD")
             sudo("git remote set-url origin " + remote)
             sudo("git checkout -- .")
+            if current_branch != branch:
+                sudo("git checkout -b " + branch + " origin/" + branch)
+            sudo("git branch --set-upstream-to=origin/" + branch)
             sudo("git pull origin " + branch)
 
         Permission.owner(repository, user, user)
