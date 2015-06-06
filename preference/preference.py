@@ -16,14 +16,17 @@ class Preference:
         self.preference[key] = value
         self.save_preference()
 
-    def ask(self, key):
+    def ask(self, key, question=""):
         if not self.preference_loaded:
             self.load_preference()
 
         if key in self.preference:
             return self.preference[key]
         else:
-            sys.stdout.write(key + ': ')
+            if question:
+                sys.stdout.write(question + ': ')
+            else:
+                sys.stdout.write(key + ': ')
             value = self.parse_input(self, raw_input())
             self.set(key, value)
             return value
@@ -65,3 +68,6 @@ class Preference:
         handle = open(self.preference_file, "w")
         handle.write(content)
         handle.close()
+
+    def reset_preference(self):
+        os.remove(self.preference_file)
