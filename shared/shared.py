@@ -7,7 +7,7 @@ from fabric.utils import *
 
 class Shared:
     """
-    @type config: toolkit.config.config.Config
+    @type config: toolkit.config._config.Config
     @type preference: toolkit.preference.preference.Preference
     """
     def __init__(self, config, preference):

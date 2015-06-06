@@ -6,7 +6,7 @@ from toolkit.permission.permission import Permission
 
 class Repo:
     """
-    @type config: toolkit.config.config.Config
+    @type config: toolkit.config._config.Config
     @type preference: toolkit.preference.preference.Preference
     """
     def __init__(self, config):
