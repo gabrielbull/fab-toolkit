@@ -8,12 +8,12 @@ from toolkit.permission.permission import Permission
 
 class Config:
     @staticmethod
-    def copy_configs(config_directory, remote_directory, preference, user):
+    def copy_configs(config_directory, remote_directory, preference, user, env):
         files = [f for f in listdir(config_directory) if isfile(join(config_directory, f))]
         for file_name in files:
             if file_name != '.DS_Store':
                 file_path = config_directory + '/' + file_name
-                file_content = Config.replace_variables(preference, file_path)
+                file_content = Config.replace_variables(preference, file_path, env)
                 Config.upload_file(remote_directory, file_name, file_content, user)
 
     @staticmethod
@@ -30,7 +30,7 @@ class Config:
         Permission.owner(file_path, user, user)
 
     @staticmethod
-    def replace_variables(preference, file_path):
+    def replace_variables(preference, file_path, env):
         file_content = open(file_path, 'r').read()
 
         pattern = re.compile(r'{{(.*)}}')
@@ -39,7 +39,7 @@ class Config:
             question = ''
             if len(key) == 2:
                 question = key[1].strip('"\'')
-            key = file_path + "/" + key[0]
+            key = env + "/" + file_path + "/" + key[0]
 
             file_content = file_content.replace('{{' + match + '}}', preference.ask(key, question))
 
